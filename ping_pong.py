@@ -41,6 +41,7 @@ class Raquete:
 
 class Bola:
     def __int__(self, tamanho):
+        self.altura, self.largura = tamanho
         self.imagem = pygame.Surface(tamanho)
         self.imagem.fill(vermelho)
         self.imagem_retangulo = self.imagem.get_rect()
@@ -61,14 +62,30 @@ class Bola:
         self.imagem_retangulo.x = tela_retangulo.centerx
         self.imagem_retangulo.y = tela_retangulo.centery
         self.velo = [x, y]
+        self.pos = list(tela_retangulo.center)
+
+    def colide_parede(self):
+        if self.imagem_retangulo.y < 0 or self.imagem_retangulo.y > tela_retangulo.bottom - self.altura:
+            self.velo[1] *= -1
+        if self.imagem_retangulo.x < 0 or self.imagem_retangulo.x > tela_retangulo.right - self.largura:
+            self.velo[0] *= -1
+            if self.imagem_retangulo.x < 0:
+                print('Bateu na parede!')
+
+    def colide_raquete(self, raquete_rect):
+        if self.imagem_retangulo.colliderect(raquete_rect):
+            self.velo[0] *= -1
+            print('Boa!')
 
     def mover(self):
-        self.imagem_retangulo[0] += self.velo[0] * self.velocidade
-        self.imagem_retangulo[1] += self.velo[1] * self.velocidade
+        self.pos[0] += self.velo[0] * self.velocidade
+        self.pos[1] += self.velo[1] * self.velocidade
+        self.imagem_retangulo.center = self.pos
 
-    def atualizar(self):
+    def atualizar(self, raquete_rect):
+        self.colide_parede()
+        self.colide_raquete(raquete_rect)
         self.move()
-        self.imagem_retangulo.clamp_ip(tela_retangulo)
 
     def realiza(self):
         tela.blit(self.imagem, self.imagem_retangulo)
@@ -84,7 +101,7 @@ while not fim:
     tecla = pygame.key.get_pressed()
     tela.fill(preto)
     raquete.realiza()
-    raquete.atualizar(tecla)
     bola.realiza()
-    bola.atualizar()
+    raquete.atualizar(tecla)
+    bola.atualizar(raquete.imagem_retangulo)
     pygame.display.update()
